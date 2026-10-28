@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LCZ Label Globe</title>
+<meta name="description" content="Where the So2Sat LCZ42 and WUDAPT LCZ Generator training labels are, drawn in their Local Climate Zone colours.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="assets/app.css?v={{ asset_v }}">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/deck.gl@9.4.0/dist.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/dist/pmtiles.js"></script>
+</head>
+<body data-mode="so2sat">
+
+<header>
+  <button id="toggle-panel" type="button" aria-label="Show filters">☰</button>
+  <h1>LCZ label globe</h1>
+  <div class="seg" role="group" aria-label="Dataset">
+    <button type="button" data-mode="so2sat" aria-pressed="true">So2Sat</button>
+    <button type="button" data-mode="wudapt" aria-pressed="false">WUDAPT</button>
+    <button type="button" data-mode="both" aria-pressed="false">Both (split)</button>
+  </div>
+  <div class="seg" role="group" aria-label="Basemap">
+    <button type="button" data-basemap="map" aria-pressed="true">Map</button>
+    <button type="button" data-basemap="satellite" aria-pressed="false">Satellite</button>
+  </div>
+</header>
+
+<main>
+  <aside id="sidebar">
+    <section class="layers">
+      <h2>Layers</h2>
+      {% set g = overlays.guppd %}
+      {% if g %}
+      <details class="filter overlay" id="layer-guppd">
+        <summary><label><input type="checkbox" data-overlay="guppd"> {{ g.label }}</label>
+          <span class="status" id="status-guppd"></span></summary>
+        <p class="blurb">{{ g.blurb }} {{ '{:,}'.format(g.n_features) }} settlements.</p>
+        <ul class="levels">
+          {% for lv in g.columns.level.levels %}
+          <li><label><input type="checkbox" data-guppd-level="{{ loop.index0 }}" checked>
+            <span class="swatch ring" style="border-color:{{ g.columns.level.colours[loop.index0] }}"></span>
+            <span class="name">{{ lv }}</span></label></li>
+          {% endfor %}
+        </ul>
+      </details>
+      {% endif %}
+      {% set d = overlays.demuzere %}
+      {% if d and d.url %}
+      <div class="filter overlay" id="layer-demuzere">
+        <label><input type="checkbox" data-overlay="demuzere"> Demuzere 2022 LCZ map</label>
+        <label class="opacity">Opacity <input type="range" id="demuzere-opacity" min="0" max="100" value="70"></label>
+      </div>
+      {% endif %}
+    </section>
+    <nav class="tabs" role="tablist">
+      {% for key, ds in datasets.items() %}
+      <button type="button" role="tab" data-panel="{{ key }}">{{ ds.label }}</button>
+      {% endfor %}
+    </nav>
+    {% for key, ds in datasets.items() %}
+    <section class="panel" data-key="{{ key }}" {% if not loop.first %}hidden{% endif %}>
+      <h2>{{ ds.label }}</h2>
+      <p class="blurb">{{ ds.blurb }}</p>
+      <div class="countline">
+        <span class="shown">{{ '{:,}'.format(ds.n) }} labels</span>
+        <span class="btns">
+          <button type="button" class="reset" data-reset="{{ key }}">Reset</button>
+          <button type="button" class="apply" data-apply="{{ key }}" disabled>Apply</button>
+        </span>
+      </div>
+      <p class="pending-note">Filters changed — press Apply to redraw the map.</p>
+      <div class="filters"></div>
+      <p class="source">Source: <code>{{ ds.source }}</code></p>
+    </section>
+    {% endfor %}
+    <p class="foot">
+      Zoom in past level 10 to swap the dots for the label polygons.
+      WUDAPT submitter names and free-text remarks are not included.
+      Built {{ generated }}.
+    </p>
+  </aside>
+
+  <div id="maps">
+    {% for key, ds in datasets.items() %}
+    <div class="map" id="map-{{ key }}" hidden>
+      <div class="map-label">{{ ds.label }} <span class="status" id="status-{{ key }}"></span></div>
+    </div>
+    {% endfor %}
+  </div>
+</main>
+
+<script src="assets/app.js?v={{ asset_v }}"></script>
+</body>
+</html>

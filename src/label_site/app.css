@@ -1,0 +1,191 @@
+:root {
+  --bg: #ffffff;
+  --fg: #1d2327;
+  --muted: #69737a;
+  --line: #dde2e5;
+  --accent: #1f5f8b;
+  --panel-w: 300px;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+header {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 8px 16px; border-bottom: 1px solid var(--line);
+}
+header h1 { font-size: 15px; margin: 0 auto 0 0; font-weight: 600; }
+#toggle-panel { display: none; }
+
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button {
+  border: 0; background: none; padding: 5px 10px; cursor: pointer; color: var(--fg);
+  font: inherit;
+}
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+
+main { flex: 1; display: flex; min-height: 0; }
+
+#sidebar {
+  width: var(--panel-w); flex: none; overflow-y: auto; padding: 12px 16px;
+  border-right: 1px solid var(--line);
+}
+.tabs { display: none; gap: 4px; margin-bottom: 8px; }
+body[data-mode="both"] .tabs { display: flex; }
+.tabs button {
+  flex: 1; border: 1px solid var(--line); background: none; padding: 5px; cursor: pointer;
+  border-radius: 6px; font: inherit; color: var(--fg);
+}
+.tabs button[aria-selected="true"] { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+.panel h2 { font-size: 14px; margin: 0 0 2px; }
+.blurb, .source, .foot { color: var(--muted); margin: 0 0 8px; }
+.foot { margin-top: 16px; font-size: 12px; }
+.countline { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; }
+.shown { font-weight: 600; }
+.countline .btns { display: flex; gap: 4px; }
+.reset, .apply, .bulk button {
+  border: 1px solid var(--line); background: none; border-radius: 4px; cursor: pointer;
+  padding: 2px 8px; font: inherit; color: var(--fg);
+}
+/* Nothing to apply is the resting state, so the button only lights up when the
+   draft and the map actually disagree. */
+.apply[disabled] { opacity: .45; cursor: default; }
+.apply.dirty {
+  background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600;
+}
+/* Always in flow. Showing it with `display` pushed every checkbox row down by
+   almost exactly one row height (21 px), so the first tick moved the list out
+   from under the pointer and the next click landed on the wrong class. */
+.pending-note {
+  margin: 0 0 6px; color: var(--accent); font-size: 12px; visibility: hidden;
+}
+.pending-note.on { visibility: visible; }
+
+/* Evaluating the filter is one synchronous burst, so the panel says so rather
+   than just freezing. */
+.panel.busy .filters { opacity: .55; pointer-events: none; }
+.panel.busy .shown::after {
+  content: ' · filtering…'; color: var(--accent); font-weight: 400;
+}
+
+.filter { border-top: 1px solid var(--line); padding: 6px 0; }
+.filter summary {
+  cursor: pointer; display: flex; justify-content: space-between; font-weight: 600;
+  list-style-position: inside;
+}
+.filter summary .active { color: var(--accent); font-weight: 400; }
+.bulk { display: flex; gap: 4px; margin: 6px 0 4px; }
+.filter input[type="search"] {
+  width: 100%; padding: 4px 6px; margin-bottom: 4px; font: inherit;
+  border: 1px solid var(--line); border-radius: 4px;
+}
+.levels { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow-y: auto; }
+.levels.lcz { max-height: none; }
+.levels label { display: flex; align-items: center; gap: 6px; padding: 1px 0; cursor: pointer; }
+.levels .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.levels .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+.levels li.empty { opacity: 0.45; }
+.levels li.more { color: var(--muted); padding: 4px 0; }
+.layers { margin-bottom: 12px; }
+.layers h2 { font-size: 14px; margin: 0 0 4px; }
+.overlay summary label, .overlay > label { cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.overlay .opacity { display: flex; gap: 8px; align-items: center; color: var(--muted); margin-top: 4px; }
+.overlay .opacity input { flex: 1; accent-color: var(--accent); }
+.swatch.ring { background: none; border: 2px solid; outline: 0; }
+.swatch { width: 12px; height: 12px; border-radius: 2px; flex: none; outline: 1px solid rgba(0,0,0,.15); }
+
+/* ── Range filter: one track, two thumbs, a typed box each side ─────────── */
+.range-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.range-row .num {
+  width: 4.6em; flex: none; padding: 3px 4px; font: inherit; font-size: 12px;
+  text-align: center; font-variant-numeric: tabular-nums;
+  border: 1px solid var(--line); border-radius: 4px;
+  background: var(--bg); color: var(--fg);
+}
+.range-row .num:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+/* An open end is not a cut, so it reads as a bound rather than a chosen value. */
+.range-row .num.open { color: var(--muted); border-style: dashed; }
+
+.track { position: relative; flex: 1; min-width: 60px; height: 20px; }
+.track .rail, .track .fill {
+  position: absolute; top: 50%; height: 4px; margin-top: -2px; border-radius: 2px;
+  pointer-events: none;
+}
+.track .rail { left: 0; right: 0; background: var(--line); }
+.track .fill { background: var(--accent); }
+
+/* Both inputs span the whole track and are invisible; only the thumbs are hit
+   targets, so the pair behaves as one control. */
+.track input[type="range"] {
+  position: absolute; left: 0; top: 0; width: 100%; height: 100%;
+  margin: 0; padding: 0; background: none; border: 0;
+  -webkit-appearance: none; appearance: none; pointer-events: none;
+}
+.track input[type="range"]:focus { outline: none; }
+.track input[type="range"]::-webkit-slider-runnable-track { background: none; border: 0; }
+.track input[type="range"]::-moz-range-track { background: none; border: 0; }
+.track input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; pointer-events: auto;
+  width: 14px; height: 14px; border-radius: 50%; cursor: grab;
+  background: var(--bg); border: 2px solid var(--accent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+}
+.track input[type="range"]::-moz-range-thumb {
+  pointer-events: auto; width: 14px; height: 14px; border-radius: 50%; cursor: grab;
+  background: var(--bg); border: 2px solid var(--accent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+}
+.track input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
+.track input[type="range"]:focus-visible::-moz-range-thumb { outline: 2px solid var(--accent); outline-offset: 2px; }
+.track .lo { z-index: 3; }
+.track .hi { z-index: 4; }
+.missing { display: flex; gap: 6px; align-items: center; color: var(--muted); margin-top: 4px; }
+
+#maps { flex: 1; display: flex; min-width: 0; }
+.map { flex: 1; position: relative; min-width: 0; }
+.map + .map { border-left: 2px solid var(--fg); }
+.map[hidden] { display: none; }
+.map-label {
+  position: absolute; z-index: 2; top: 10px; left: 10px; padding: 3px 8px;
+  background: rgba(255,255,255,.9); border-radius: 4px; font-weight: 600;
+  pointer-events: none;
+}
+.status { font-weight: 400; color: var(--muted); }
+
+.tip { font: 12px/1.35 system-ui, sans-serif; background: #fff !important; color: var(--fg) !important;
+       border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px !important;
+       box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.tip table { border-collapse: collapse; }
+.tip th { text-align: left; font-weight: 400; color: var(--muted); padding-right: 8px; }
+
+@media (max-width: 760px) {
+  #toggle-panel {
+    display: inline-block; border: 1px solid var(--line); background: none;
+    border-radius: 4px; padding: 2px 8px; font-size: 16px; cursor: pointer;
+  }
+  header { padding: 8px 16px; }
+  #sidebar {
+    position: absolute; z-index: 5; top: 0; bottom: 0; left: 0; width: min(88vw, 320px);
+    background: var(--bg); transform: translateX(-100%); transition: transform .2s;
+  }
+  body.panel-open #sidebar { transform: none; }
+  main { position: relative; }
+  body[data-mode="both"] #maps { flex-direction: column; }
+  body[data-mode="both"] .map + .map { border-left: 0; border-top: 2px solid var(--fg); }
+}
+
+/* A load failure is announced where the controls are, not in the map pane. */
+.load-error {
+  margin: 0 0 8px; padding: 8px 10px; border-radius: 4px;
+  background: #fdecea; color: #611a15; border: 1px solid #f3b8b2;
+  font-size: 12px; line-height: 1.4;
+}
+.load-error[hidden] { display: none; }

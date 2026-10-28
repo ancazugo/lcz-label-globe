@@ -1,0 +1,18 @@
+# Config for the `deploy` branch, where the built site sits at the repo root.
+# Nothing is built here: the payload is generated on a machine that can reach
+# /maps, so Netlify only has static files to publish.
+[build]
+  publish = "."
+  command = ""
+
+[[headers]]
+  for = "/data/*.bin"
+  [headers.values]
+    # The payload is content-addressed by rebuild, not by filename, so it is
+    # revalidated rather than cached forever.
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
