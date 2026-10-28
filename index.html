@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LCZ Label Globe</title>
+<meta name="description" content="Where the So2Sat LCZ42 and WUDAPT LCZ Generator training labels are, drawn in their Local Climate Zone colours.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="assets/app.css?v=ff8cd84ce549">
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/maplibre-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/deck.gl@9.4.0/dist.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pmtiles@4.5.0/dist/pmtiles.js"></script>
+</head>
+<body data-mode="so2sat">
+
+<header>
+  <button id="toggle-panel" type="button" aria-label="Show filters">☰</button>
+  <h1>LCZ label globe</h1>
+  <div class="seg" role="group" aria-label="Dataset">
+    <button type="button" data-mode="so2sat" aria-pressed="true">So2Sat</button>
+    <button type="button" data-mode="wudapt" aria-pressed="false">WUDAPT</button>
+    <button type="button" data-mode="both" aria-pressed="false">Both (split)</button>
+  </div>
+  <div class="seg" role="group" aria-label="Basemap">
+    <button type="button" data-basemap="map" aria-pressed="true">Map</button>
+    <button type="button" data-basemap="satellite" aria-pressed="false">Satellite</button>
+  </div>
+</header>
+
+<main>
+  <aside id="sidebar">
+    <section class="layers">
+      <h2>Layers</h2>
+      
+      
+      <details class="filter overlay" id="layer-guppd">
+        <summary><label><input type="checkbox" data-overlay="guppd"> GUPPD settlements</label>
+          <span class="status" id="status-guppd"></span></summary>
+        <p class="blurb">Global Urban Polygons and Points Dataset v1 (CIESIN): GHS-SMOD settlement outlines. 123,034 settlements.</p>
+        <ul class="levels">
+          
+          <li><label><input type="checkbox" data-guppd-level="0" checked>
+            <span class="swatch ring" style="border-color:#7b2d8e"></span>
+            <span class="name">Urban centre</span></label></li>
+          
+          <li><label><input type="checkbox" data-guppd-level="1" checked>
+            <span class="swatch ring" style="border-color:#d1495b"></span>
+            <span class="name">Dense urban cluster</span></label></li>
+          
+          <li><label><input type="checkbox" data-guppd-level="2" checked>
+            <span class="swatch ring" style="border-color:#edae49"></span>
+            <span class="name">Semi-dense urban cluster</span></label></li>
+          
+        </ul>
+      </details>
+      
+      
+      
+    </section>
+    <nav class="tabs" role="tablist">
+      
+      <button type="button" role="tab" data-panel="so2sat">So2Sat LCZ42</button>
+      
+      <button type="button" role="tab" data-panel="wudapt">WUDAPT LCZ Generator</button>
+      
+    </nav>
+    
+    <section class="panel" data-key="so2sat" >
+      <h2>So2Sat LCZ42</h2>
+      <p class="blurb">320 m patches labelled by experts in 52 cities (Zhu et al. 2020).</p>
+      <div class="countline">
+        <span class="shown">400,673 labels</span>
+        <span class="btns">
+          <button type="button" class="reset" data-reset="so2sat">Reset</button>
+          <button type="button" class="apply" data-apply="so2sat" disabled>Apply</button>
+        </span>
+      </div>
+      <p class="pending-note">Filters changed — press Apply to redraw the map.</p>
+      <div class="filters"></div>
+      <p class="source">Source: <code>patches_reference_rxr.gpkg</code></p>
+    </section>
+    
+    <section class="panel" data-key="wudapt" hidden>
+      <h2>WUDAPT LCZ Generator</h2>
+      <p class="blurb">Training areas digitised by volunteers and submitted to the LCZ Generator (Demuzere et al. 2021), release 2024-10-01.</p>
+      <div class="countline">
+        <span class="shown">630,311 labels</span>
+        <span class="btns">
+          <button type="button" class="reset" data-reset="wudapt">Reset</button>
+          <button type="button" class="apply" data-apply="wudapt" disabled>Apply</button>
+        </span>
+      </div>
+      <p class="pending-note">Filters changed — press Apply to redraw the map.</p>
+      <div class="filters"></div>
+      <p class="source">Source: <code>LCZ-Generator_training_areas_2024-10-01.gpkg</code></p>
+    </section>
+    
+    <p class="foot">
+      Zoom in past level 10 to swap the dots for the label polygons.
+      WUDAPT submitter names and free-text remarks are not included.
+      Built 2026-10-28.
+    </p>
+  </aside>
+
+  <div id="maps">
+    
+    <div class="map" id="map-so2sat" hidden>
+      <div class="map-label">So2Sat LCZ42 <span class="status" id="status-so2sat"></span></div>
+    </div>
+    
+    <div class="map" id="map-wudapt" hidden>
+      <div class="map-label">WUDAPT LCZ Generator <span class="status" id="status-wudapt"></span></div>
+    </div>
+    
+  </div>
+</main>
+
+<script src="assets/app.js?v=ff8cd84ce549"></script>
+</body>
+</html>
