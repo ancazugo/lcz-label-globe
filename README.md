@@ -75,18 +75,53 @@ this repo and supplies the city centroids.
 
 ## Deploy
 
+Repo: <https://github.com/ancazugo/lcz-label-globe> (public).
+
 Source lives on `main`; the ~63 MB build output is published to a `deploy`
-branch that is force-pushed, so its history never accumulates.
+branch that is force-pushed, so its history never accumulates — `main` never
+carries a binary.
+
+**To rebuild and redeploy, this is the whole thing:**
 
 ```bash
-bash scripts/deploy.sh                        # build, then push to `deploy`
-bash scripts/deploy.sh --demuzere-url https://<host>/demuzere_lcz_v3.pmtiles
+cd ~/repos/lcz-label-globe
+export DATA_DIR=/maps/acz25/phd-thesis-data
+bash scripts/deploy.sh
 ```
 
-In Netlify: connect the repo, set the production branch to `deploy`, publish
-directory `.`, build command empty. `deploy/netlify.toml` is copied to the
-branch root and sets the cache headers — the `.bin` payload must revalidate,
-since it is content-addressed by rebuild rather than by filename.
+It builds from the GeoPackages, checks the output is not empty, syncs it into a
+throwaway git worktree and force-pushes `deploy`. Netlify redeploys on the
+push. On this host the data lives behind a group, so wrap it:
+
+```bash
+sg maps -c "bash -lc 'cd ~/repos/lcz-label-globe && \
+  source /maps/acz25/envs/eo_fm-env/bin/activate && \
+  export DATA_DIR=/maps/acz25/phd-thesis-data && bash scripts/deploy.sh'"
+```
+
+Extra arguments are passed straight to the builder:
+
+```bash
+bash scripts/deploy.sh --demuzere-url https://<host>/demuzere_lcz_v3.pmtiles
+bash scripts/deploy.sh --no-guppd
+```
+
+**Netlify settings** (once, per site):
+
+| Setting | Value |
+|---|---|
+| Production branch | `deploy` |
+| Publish directory | `.` |
+| Build command | *(empty)* |
+
+`deploy/netlify.toml` is copied to the branch root and sets the cache headers —
+the `.bin` payload must revalidate, since it is content-addressed by rebuild
+rather than by filename, while `assets/` caches for a day.
+
+The `deploy` branch is public too, so the payload is publicly downloadable.
+That is the point for a public dashboard, but note it explicitly: it carries
+So2Sat patch geometry and classes plus the WUDAPT training areas under the
+column whitelist — no submitter names, `cite_as` or free-text remarks.
 
 `--zip <path>` instead produces a drag-and-drop archive with the files at the
 archive root.
